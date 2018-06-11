@@ -184,6 +184,7 @@
                     {
                         url: url,
                         type: "POST",
+		    	headers: {  'Access-Control-Allow-Origin': 'https://s242-097.jaist.ac.jp' },
                         data: {
                             text: jQuery("#txtText").val(),
                             output_format: "text",
