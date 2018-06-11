@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghibli App</title>
+   <style type="text/css">
+        .r
+        {
+            border: 1px solid #8b388b;
+            color: yellow;
+            background-color: #000000;
+        }
+
+        .r:after {
+            content: "R";
+            font-size: 50%;
+            color: blue;
+            font-weight: bold;
+        }
+
+        .e
+        {
+            border: 1px solid #8b388b;
+            color: #0000ff;
+            background-color: #b3ffb3;
+
+        }
+
+        .e:after {
+            content: "E";
+            font-size: 50%;
+            color: blue;
+            font-weight: bold;
+        }
+
+        .u
+        {
+            border: 1px solid #8b388b;
+            color: #4d004d;
+            background-color: #ffffcc;
+
+        }
+
+        .u:after {
+            content: "U";
+            font-size: 50%;
+            color: blue;
+            font-weight: bold;
+        }
+
+
+        .o
+        {
+            color: black;
+            background-color: #ffe6ff;
+            cursor:pointer
+        }
+
+        .i
+        {
+            font-style: italic
+        }
+
+        .small-icon
+        {
+            width: 10px;
+            height: 10px;
+            margin: 0;
+        }
+
+        pre {
+            white-space: pre-wrap;       /* Since CSS 2.1 */
+            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            color: blue;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+    </style>
+
+    <script>
+        function display(json_a, n)
+        {
+
+            var css_list = {
+                "B-R": "r",
+                "B-E": "e",
+                "B-U": "u"
+            };
+            var tag_list = ["B-R", "B-E", "B-U"];
+            var tag_list_end = ["I-R", "I-E", "I-U"];
+
+
+            var out = "";
+            alert(json_a["conll_data"][0][0]);
+            for (var i = 0; i < json_a["conll_data"].length; i++)
+            {
+                var sentence = json_a["conll_data"][i];
+                var tokens = "";
+                for (var j = 0; j < sentence.length; j++)
+                {
+                    var id = "w-" + i + "-" + j;
+                    var tag = sentence[j][n];
+                    var word = sentence[j][0];
+                    if (tag_list.indexOf(tag) >= 0)
+                    {
+                        var css = css_list[tag];
+                        tokens = id;
+                        if (j + 1 < sentence.length
+                            && tag_list_end.indexOf(sentence[j + 1][n]) >= 0)
+                        {
+
+                            out = out + " <span class='" + css + "'><span id='" + id + "' class='i'>" + word + "</span>";
+                        }
+                        else
+                        {
+                            out = out + " <span class='" + css + "'><span id='" + id + "' class='i'>" + word + "</span></span> <sub><button class='nerRemove' data='" + tokens + "' style='cursor:pointer'><img class='small-icon' src='css/images/delete.png' /></button></sub>";
+
+                        }
+                    }
+                    else
+                    {
+                        if (tag_list_end.indexOf(tag) >= 0)
+                        {
+                            tokens = tokens + ":" + id;
+                            if (j + 1 < sentence.length)
+                            {
+
+                                if (tag_list_end.indexOf(sentence[j + 1][n]) < 0)
+                                {
+                                    out = out + " <span id='" + id + "' class='i'>" + word + "</span></span> <sub><button class='nerRemove' data='" + tokens + "' style='cursor:pointer'><img class='small-icon' src='css/images/delete.png' /></button></sub>";
+                                }
+                                else
+                                {
+                                    out = out + " <span id='" + id + "' class='i'>" + word + "</span> ";
+                                }
+                            }
+                            else
+                            {
+                                out = out + " <span id='" + id + "' class='i'>" + word + "</span></span> <sub><button class='nerRemove' data='" + tokens + "' style='cursor:pointer'><img class='small-icon' src='css/images/delete.png' /></button></sub>";
+                            }
+
+                        }
+                        else
+                        {
+                            out = out + " <span id='" + id + "' class='o'>" + word + "</span> ";
+                        }
+
+                    }
+                }
+                out = out + "<br/>";
+            }
+
+            return "<div class='box'>" + out + "</div>";
+        }
+
+        function setStyle(b, e, style)
+        {
+            if (b && e)
+                b.nextUntil(e).css(style);
+
+            if (b)
+                b.css(style);
+            if (e)
+                e.css(style);
+        }
+    </script>
+
+    <script>
+        jQuery(document).ready(function() {
+            var doTagging = function ()
+            {
+                // var url = "http://uv.jaist.ac.jp:8081/api/compress/Barack%20Obama%20has%20called%20for%20the%20release%20of%20an%20American%20pastor%20imprisoned%20in%20Iran%20.";
+                // var url = "http://uv.jaist.ac.jp:8081/api/compress/" + jQuery("#txtText").val();
+//					 var url = "/api/compress/text=" + jQuery("#txtText").val();
+                var url = "/tetsuzan:8124/jcc/api/tagging";
+
+
+                jQuery.ajax(
+                    {
+                        url: url,
+                        type: "POST",
+                        data: {
+                            text: jQuery("#txtText").val(),
+                            output_format: "text",
+                            feature_type: "word",
+                            model_type: "Multi-BiLSTM-CRF",
+                            pretrained_type: "pretrained",
+                            input_format : "text"
+                        },
+                        // dataType: 'json',
+                        success: function(result)
+                        {
+                            // jQuery("#divResult_Out").html(display(result,2));
+                            jQuery("#divResult_Out").html("<pre>" + result + "</pre>");
+                            jQuery("#divResult").show();
+                        }
+                    });
+            };
+
+            jQuery("#btnTagging").click(doTagging);
+
+//                jQuery(window).keydown(function(e) {
+//					// alert("");
+//					switch (e.keyCode) {
+//	                    	case 13:
+//	                    		doTagging();
+//	                        	e.preventDefault(); // avoid browser scrolling due to pressed key
+//	                    	return;
+//                	}
+//            	});
+        });
+    </script>
+
+
+<body>
+
+<h1>API: jcc/api/tagging/</h1>
+<ul>
+    <li><strong>text</strong>: A list of lines, each one is a sentence</li>
+</ul>
+Sentences:<br/>
+<textarea title="input text" id="txtText" style="width: 100%" rows="10">Private rights must conform to the public welfare.
+The exercise of rights and performance of duties must be done in good faith.
+No abuse of rights is permitted.
+The enjoyment of private rights shall commence at birth.
+Unless otherwise provided by applicable laws, regulations or treaties, foreign nationals shall enjoy private rights.
+A minor must obtain the consent of his/her statutory agent to perform any juristic act;
+provided, however, that, this shall not apply to an act merely intended to acquire a right or to be relieved of a duty.
+A juristic act in contravention of the provision of the preceding paragraph may be rescinded.
+Notwithstanding the provision of paragraph 1, in cases the statutory agent permits the disposition of property by specifying the purpose thereof, a minor may freely dispose of the same to the extent of such purpose.
+The same shall apply in cases his/her statutory agent permits the disposition of the property without specifying any purpose.
+A minor who is permitted to carry on one or more kinds of business shall have the same capacity to act as a person of the age of majority as far as such business is concerned.
+In the case set forth in the preceding paragraph, if the minor may be unable to perform the relevant business for any reason, his/her statutory agent may revoke or limit permission in accordance with the provisions of Part IV (Relatives).
+		</textarea>
+<br/>
+<div style="width: 100%; text-align: center"><input id="btnTagging" type='button' value='RE Tagging'/></div>
+
+<hr/>
+<div id="divResult" style="display:none">
+
+    <div id="divResult_In"></div>
+    <h1>Response:</h1>
+
+</div>
+<div id="divResult_Out"></div>
+</body>
